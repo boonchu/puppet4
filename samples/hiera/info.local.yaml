@@ -1,0 +1,11 @@
+snmp_stats:
+  port: 52910
+  display_name: chat
+  stats:
+    - stat: session_auth_fails
+      oid: .1.3.6.1.4.1.40005.1.2.1.2.1.4.0
+memcache_host: localhost
+memcache_port: 11212
+memcache_stats:
+  - authentication:authenticate
+  - authentication:does_user_exist

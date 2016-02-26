@@ -1,0 +1,5 @@
+port <%= @options_hash['port'] %>
+bind <%= @options_hash['bind'] %>
+<% if @options_hash['slave'] == true -%>
+slaveof <%= @options_hash['masterip'] %> <%= @options_hash['masterport'] %>
+<% end -%>
