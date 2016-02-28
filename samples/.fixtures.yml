@@ -3,6 +3,12 @@
 fixtures:
   repositories:
     stdlib: 'git://github.com/puppetlabs/puppetlabs-stdlib'
+    puppet: 'git://github.com/abstractitptyltd/abstractit-puppet'
+    apache: 'https://github.com/puppetlabs/puppetlabs-apache.git'
+    concat: 'https://github.com/puppetlabs/puppetlabs-concat.git'
+    mysql: 'https://github.com/puppetlabs/puppetlabs-mysql.git'
+    vsftpd: 'https://github.com/thias/puppet-vsftpd.git'
+    wordpress: 'https://github.com/hunner/puppet-wordpress.git'
   symlinks:
     samples/files: '../../../../files'
     samples/manifests: '../../../../manifests'

@@ -92,3 +92,6 @@ samples/.fixtures.yml
 +    $memcache_port  = hiera('memcache_port', '11212')
 +
 ```
+
+###### Puppet Design: Roles Profiles Coding Pattern #######
+  * https://github.com/hunner/roles_and_profiles.git

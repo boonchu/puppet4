@@ -11,15 +11,32 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provision :shell, :path => "./.vagrant_puppet/init.sh"
 
-  config.vm.provider 'virtualbox' do |vbox|
-    vbox.memory = 1024
-    vbox.cpus = 2
+  config.hostmanager.ip_resolver = proc do |vm, resolving_vm|
+    if hostname = (vm.ssh_info && vm.ssh_info[:host])
+        `host #{hostname}`.split("\n").last[/(\d+\.\d+\.\d+\.\d+)/, 1]
+    end
+  end
+
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
+  config.hostmanager.manage_guest = true
+
+  config.vm.define 'default' do |node|
+    node.vm.hostname = 'default.vagrant.local'
+    node.vm.network "forwarded_port", guest: 80, host: 80
+    node.vm.network :private_network, ip: '192.168.42.42'
+    node.hostmanager.aliases = %w(web.vagrant.local db.vagrant.local)
+    node.vm.provider 'virtualbox' do |vbox|
+        vbox.memory = 1024
+        vbox.cpus = 2
+    end
+    node.vm.provision :hostmanager
   end
 
   config.vm.provision :puppet do |puppet|
     puppet.environment_path = '.vagrant_puppet/environments'
     puppet.environment = 'vagrant'
-    puppet.options = '--verbose'
+    puppet.options = '--verbose --parser future'
     puppet.hiera_config_path = 'hiera/hiera.yaml'    
   end
 
@@ -33,4 +50,11 @@ end
 # vagrant plugin install vagrant-serverspec
 unless Vagrant.has_plugin?('vagrant-serverspec')
   raise 'vagrant-serverspec is not installed!'
+end
+
+# need hostmanager
+# vagrant plugin install vagrant-hostmanager
+# https://github.com/smdahlen/vagrant-hostmanager
+unless Vagrant.has_plugin?('vagrant-hostmanager')
+  raise 'vagrant-hostmanager is not installed!'
 end
