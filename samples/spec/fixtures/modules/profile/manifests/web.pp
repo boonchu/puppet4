@@ -5,5 +5,6 @@ class profile::web {
     }
 
     include apache::mod::php
+    include profile::node_firewall::web
 
 }

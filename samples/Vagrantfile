@@ -18,8 +18,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.hostmanager.enabled = true
-  config.hostmanager.manage_host = true
-  config.hostmanager.manage_guest = true
+  config.hostmanager.manage_host = false
+  config.hostmanager.manage_guest = false
 
   config.vm.define 'default' do |node|
     node.vm.hostname = 'default.vagrant.local'
