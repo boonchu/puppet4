@@ -1,8 +1,0 @@
----
-samples::config_file_template: 'files/redis.conf.erb'
-samples::options_hash:
-  port: '12312'
-  bind: '0.0.0.0'
-  masterip: '10.0.42.50'
-  masterport: '12350'
-  slave: true
