@@ -1,9 +1,121 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# Review this Class Spec first!
+# http://www.rubydoc.info/github/mitchellh/vagrant/Vagrant
+
+# need serverspec, hostmanager, dotenv, deep_merge
+# vagrant plugin install vagrant-serverspec
+# vagrant plugin install vagrant-hostmanager
+# https://github.com/smdahlen/vagrant-hostmanager
+['dotenv', 'deep_merge', 'vagrant-hostmanager', 'vagrant-serverspec'].each do |plugin|
+    system("vagrant plugin install #{plugin}") unless Vagrant.has_plugin?(plugin)
+end
+
+begin 
+  Dotenv.load
+rescue => e
+  puts 'problem loading dotenv'
+  puts e
+  exit 1
+end
+
+begin
+  require 'deep_merge'
+rescue => e
+  puts 'problem loading deep_merge'
+  puts e
+  exit 1
+end
+
+# https://gitlab.com/vagrant-box/default-vagrant/blob/master/Vagrantfile
+require 'yaml'
+require 'pathname'
+require 'fileutils'
+
+DIR = File.dirname(File.expand_path(__FILE__))
+
+VM = {
+  :centos7 => 'centos7-puppet3.8.1',
+}
+
+module Vagrant
+
+  class Configs
+    require 'yaml'
+
+    attr_reader :defaults
+    attr_accessor :configs
+
+    def initialize
+      @servers = {}
+      @defaults = defaults
+      @configs = 'default'
+    end
+
+    def defaults
+      @defaults ||= {
+        'memory'  => ENV['memory'] || 1024,
+        'cpus'    => ENV['cpus'] || 1,
+        'puppet'  => {
+            'facts' => {
+                'role' => ENV['role'] || 'default',
+            },
+        },
+        'hostname' => ENV['hostname'] || 'default.vagrant.local',
+        'box'      => ENV['box'].nil? ? VM[:centos7] : VM[ENV['box'].to_sym],
+      }
+    end
+
+    def servers
+      # preserve default, commit this
+      # @servers.delete_if {|k, v| k == 'defaults' }
+      @servers
+    end
+
+    def add_server(server, config = {})
+      @servers[server] = config.deep_merge(defaults)
+      puts "default is ", @defaults
+      puts "overrided with ", @servers[server]
+    end
+
+    def load_config(configs)
+      @configs = ENV['configs'] || 'configs'
+      config_dir = ENV['config_dir'] || "#{DIR}/configs"
+      config_file = "#{config_dir}/#{@configs}.yaml"
+      puts "loading config #{config_dir}/#{@configs}.yaml"
+
+      begin
+        yaml = YAML::load_file(config_file)
+        yaml.each { |server, config| add_server(server, config) }
+      rescue => e
+        puts e.message
+      end
+    end
+
+  end
+end
+
+@configs = Vagrant::Configs.new
+
+# use configuration from ".env" at current folder (do you recall dotenv?)
+unless ENV['configs'].nil?
+  puts "found .env and use it..."
+  @configs.load_config(ENV['configs'])
+else
+  puts "no .env, use default..."
+  @configs.add_server('default')
+end
+
+@configs.servers.each do |node, config|
+  puts "configured node name is #{node}"
+  puts "  has host = #{config['hostname']}"
+  puts "  has box = #{config['box']}"
+end
+
 VAGRANTFILE_API_VERSION = "2"
 
-Vagrant.require_version ">= 1.8.0"
+Vagrant.require_version ">= 1.8.1"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Using Puppet Labs official vagrant boxes, from: https://vagrantcloud.com/puppetlabs
@@ -46,15 +158,3 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
 end
 
-# need serverspec
-# vagrant plugin install vagrant-serverspec
-unless Vagrant.has_plugin?('vagrant-serverspec')
-  raise 'vagrant-serverspec is not installed!'
-end
-
-# need hostmanager
-# vagrant plugin install vagrant-hostmanager
-# https://github.com/smdahlen/vagrant-hostmanager
-unless Vagrant.has_plugin?('vagrant-hostmanager')
-  raise 'vagrant-hostmanager is not installed!'
-end
