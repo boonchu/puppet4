@@ -143,6 +143,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         vbox.cpus = 2
     end
     node.vm.provision :hostmanager
+    # to do
+    # https://puppetlabs.com/blog/facter-part-1-facter-101
+    # {config['puppet']['facts'].collect { |k,v| "export FACTER_#{k}=#{v}"}.join("\n")}
+    node.vm.provision 'shell', inline: <<-EOF
+        echo 'Running provisioner: custom facts...'
+        if ! grep -qe "FACTER_role" ~/.bashrc ; then
+            echo 'export FACTER_role=default' >> ~/.bashrc
+        fi
+EOF
   end
 
   config.vm.provision :puppet do |puppet|

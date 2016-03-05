@@ -1,4 +1,10 @@
 node default {
-    include samples
-    include role::wordpress
+    
+  include samples
+
+  # Try to autoload role manifests
+  if $::role {
+    include "::role::${::role}"
+  }
+
 }
